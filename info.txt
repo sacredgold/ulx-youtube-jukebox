@@ -1,0 +1,8 @@
+"AddonInfo"
+{
+	"name"			"ULX YouTube music player"
+	"version"		"1.4"
+	"up_date"		"28th March, 2012"
+	"author_name"	"RynO-SauruS"
+	"info"			"A module for ULX that allows admins to play audio from YouTube videos on the server."
+}
