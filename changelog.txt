@@ -1,7 +1,10 @@
-rev 2:
+rev 3:
 Changed name from ULX YouTube music player to ULX YouTube Jukebox.
 Allowed manual text entry into Volume slider.
 Volume is now saved (remembered) via a CVar, and the video volume is automatically set accordingly when a video is loaded.
 
-rev 1:
+rev 2:
 Initial commit.
+
+rev 1:
+Google Code SVN repository created.
