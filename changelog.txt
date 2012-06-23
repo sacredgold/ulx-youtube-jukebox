@@ -1,3 +1,6 @@
+rev 4:
+Fixed changelog.txt
+
 rev 3:
 Changed name from ULX YouTube music player to ULX YouTube Jukebox.
 Allowed manual text entry into Volume slider.
@@ -7,4 +10,4 @@ rev 2:
 Initial commit.
 
 rev 1:
-Google Code SVN repository created.
+Initial directory structure.
