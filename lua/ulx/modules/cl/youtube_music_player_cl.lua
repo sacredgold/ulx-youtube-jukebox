@@ -1,4 +1,4 @@
--- ULX YouTube music player - Allows admins to play audio from YouTube videos on the server.
+-- ULX YouTube Jukebox - Allows admins to play audio from YouTube videos on the server.
 local PlayerSize = { x = 268, y = 19 }
 local PlayerPos = { x = ( ScrW() / 2 ) - ( PlayerSize.x / 2 ), y = 2 }
 
@@ -25,8 +25,8 @@ local function songplayer_init( authed_ply )
 
 	ULXSongPlayer = vgui.Create( "HTML", panel )
 	SongPlayer = ULXSongPlayer
-	SongPlayer:SetSize( 3 + 55 + 1 + PlayerSize.x + 1 + 28 + 1 + 1 + 30 + 1, PlayerSize.y + 8 ) -- Make it a little bigger than the panel, to cut off the "watch later" button, the pause/play button, and the seek bar.
-	SongPlayer:SetPos( -3 - 55 - 1, -4 ) -- Offset it a little to hide the pause/play button.
+	SongPlayer:SetSize( 3 + 55 + 1 + PlayerSize.x + 1 + 28 + 1 + 1 + 30 + 1, PlayerSize.x + 8 ) -- Make it a little bigger than the panel, to cut off the "watch later" button, the pause/play button, and the seek bar.
+	SongPlayer:SetPos( -3 - 55 - 1, -4 - PlayerSize.x + PlayerSize.y ) -- Offset it a little to hide the pause/play button.
 	SongPlayer:SetMouseInputEnabled( false )
 	SongPlayer:SetVisible( false )
 
@@ -38,11 +38,12 @@ if ( reloading ) then
 	reloading = false
 end
 
-local enabled = CreateConVar( "ulx_songplayer_enable", "1", FCVAR_ARCHIVE, "Enables/disables the ULX YouTube music player client-side" )
+local cvar_enabled = CreateConVar( "ulx_songplayer_enable", "1", FCVAR_ARCHIVE, "Enables/disables the ULX YouTube Jukebox client-side" )
 local quality_help =
-[[Sets the ULX YouTube music player video quality client-side (if the quality isn't supported by the video, it will use the closest one available)
+[[Sets the ULX YouTube Jukebox video quality client-side (if the quality isn't supported by the video, it will use the closest one available)
 Possible values: 240p, 360p,  480p,  720p,  1080p]]
-local quality = CreateConVar( "ulx_songplayer_quality", "480p", FCVAR_ARCHIVE, quality_help )
+local cvar_quality = CreateConVar( "ulx_songplayer_quality", "480p", FCVAR_ARCHIVE, quality_help )
+local cvar_volume = CreateConVar( "ulx_songplayer_volume", "50", FCVAR_ARCHIVE, "ULX YouTube Jukebox volume (client-side)" )
 
 local function setPlayerVisible( b ) -- Helper function for setting the visibility of both the DPanel and the HTML conrol simultaneously
 	panel:SetVisible( b )
@@ -114,7 +115,7 @@ end
 
 function ulx.play_vid_hook( um )
 
-	if enabled:GetBool() == false then return end
+	if cvar_enabled:GetBool() == false then return end
 
 	local video_id = um:ReadString()
 
@@ -137,7 +138,7 @@ function ulx.play_vid_hook( um )
 
 		end )
 
-		SongPlayer:OpenURL( "http://ryno-saurus.github.com/ulx_youtubemusicplayer/host.html?v=" .. video_id .. "&quality=" .. quality:GetString() )
+		SongPlayer:OpenURL( "http://ryno-saurus.github.com/ulx_youtubemusicplayer/host.html?v=" .. video_id .. "&quality=" .. cvar_quality:GetString() .. "&volume=" .. cvar_volume:GetString() )
 
 		timer.Simple( 0.5, playerFadeIn )
 
@@ -153,9 +154,9 @@ function ulx.stop_vid_hook()
 
 		timer.Simple( 0.5, playerFadeOut )
 
-		if enabled:GetBool() == false then return end
+		if cvar_enabled:GetBool() == false then return end
 
-		SongPlayer:OpenURL( "http://ryno-saurus.github.com/ulx_youtubemusicplayer/host.html?quality=" .. quality:GetString() )
+		SongPlayer:OpenURL( "http://ryno-saurus.github.com/ulx_youtubemusicplayer/host.html?quality=" .. cvar_quality:GetString() )
 
 	end )
 
@@ -411,10 +412,14 @@ function ULXOpenMusicPlayer()
 	volume:SetMin( 0 )
 	volume:SetMax( 100 )
 	volume:SetDecimals( 0 )
+	volume:SetConVar( "ulx_songplayer_volume" )
 
 	volume.OnValueChanged = function( panel, value )
 		SongPlayer:RunJavascript( "ytplayer.setVolume( " .. value .. " )" )
 	end
+
+	volume:GetTextArea().OnGetFocus = function() frame:SetKeyboardInputEnabled( true ) end
+	volume:GetTextArea().OnLoseFocus = function() frame:SetKeyboardInputEnabled( false ) end
 
 	local OldPerformLayout = frame.PerformLayout
 
