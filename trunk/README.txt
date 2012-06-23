@@ -1,4 +1,4 @@
-ULX YouTube music player by RynO-SauruS
+ULX YouTube Jukebox by RynO-SauruS
 
 INSTALLATION:
 Place this folder in garrysmod/addons
