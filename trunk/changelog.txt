@@ -1,3 +1,10 @@
+rev 7:
+Added YouTube video "debug" feature, allows you to debug the YouTube video that's playing (client-side) by showing what's on the screen (YouTube errors for example).
+Fixed many videos not playing due to the "Video player is too small" error.
+Made the player box smaller.
+Fixed being able to open the menu multiple times.
+Switched to the new name in a few more places, including the title of the menu.
+
 rev 6:
 Fixed changelog.txt (FAIL)
 
