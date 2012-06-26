@@ -28,7 +28,7 @@ function ulx.getVideoTitleFromHTTPData( data )
 	local video_title
 
 	if data:len() <= 0 then
-		print( "ULX YouTube music player: Error retrieving video title" )
+		print( "ULX YouTube Jukebox: Error retrieving video title" )
 		video_title = "<unknown_title>"
 	else
 		local _, title_tag1_end = data:find( "<media:title type='plain'>", 1, true )
@@ -257,7 +257,14 @@ function ulx.music( calling_ply )
 end
 local music = ulx.command( ulx_cmd_category, "ulx music", ulx.music, "!music", true )
 music:defaultAccess( ULib.ACCESS_ALL )
-music:help( "Opens the YouTube music player menu." )
+music:help( "Opens the YouTube Jukebox menu." )
+
+function ulx.debug_video( calling_ply )
+	ULib.clientRPC( calling_ply, "ULXSongPlayerDebug" )
+end
+local debug_video = ulx.command( ulx_cmd_category, "ulx debugvid", ulx.debug_video, "!debugvid", true )
+debug_video:defaultAccess( ULib.ACCESS_ALL )
+debug_video:help( "\"Debugs\" the YouTube video that's playing (client-side) by showing what's on the screen (such as YouTube errors)." )
 
 if SERVER then
 
@@ -325,7 +332,7 @@ local function internalCommandForMenu( calling_ply, cmd, args )
 		umsg.End()
 	end
 end
-concommand.Add( "_ulx_songplayer", internalCommandForMenu, nil, "*DO NOT RUN DIRECTLY* Internal command for the ULX YouTube music player menu." )
+concommand.Add( "_ulx_songplayer", internalCommandForMenu, nil, "*DO NOT RUN DIRECTLY* Internal command for the ULX YouTube Jukebox menu." )
 
 function ULXClientSongListRefresh( ply ) -- Makes a client (or all clients) refresh their song list.
 	ULib.clientRPC( ply, "ULXMusicPlayerRefresh" )

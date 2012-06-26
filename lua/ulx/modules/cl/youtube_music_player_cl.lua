@@ -1,6 +1,8 @@
 -- ULX YouTube Jukebox - Allows admins to play audio from YouTube videos on the server.
-local PlayerSize = { x = 268, y = 19 }
+local PlayerSize = { x = 92, y = 19 }
 local PlayerPos = { x = ( ScrW() / 2 ) - ( PlayerSize.x / 2 ), y = 2 }
+
+local PlayerSizeActual = { x = 268, y = 268 }
 
 local reloading
 if ULXSongPlayerPanel != nil and type( ULXSongPlayerPanel ) == "Panel" then
@@ -25,8 +27,9 @@ local function songplayer_init( authed_ply )
 
 	ULXSongPlayer = vgui.Create( "HTML", panel )
 	SongPlayer = ULXSongPlayer
-	SongPlayer:SetSize( 3 + 55 + 1 + PlayerSize.x + 1 + 28 + 1 + 1 + 30 + 1, PlayerSize.x + 8 ) -- Make it a little bigger than the panel, to cut off the "watch later" button, the pause/play button, and the seek bar.
-	SongPlayer:SetPos( -3 - 55 - 1, -4 - PlayerSize.x + PlayerSize.y ) -- Offset it a little to hide the pause/play button.
+	--SongPlayer:SetSize( 3 + 55 + 1 + PlayerSize.x + 1 + 28 + 1 + 1 + 30 + 1, PlayerSize.x + 8 )
+	SongPlayer:SetSize( PlayerSizeActual.x, PlayerSizeActual.y ) -- Make it a little bigger than the panel, to cut off some buttons, and the seek bar.
+	SongPlayer:SetPos( -3 - 55 - 1, -( PlayerSizeActual.y - 4 - PlayerSize.y ) ) -- Offset it a little to hide the pause/play button.
 	SongPlayer:SetMouseInputEnabled( false )
 	SongPlayer:SetVisible( false )
 
@@ -128,7 +131,7 @@ function ulx.play_vid_hook( um )
 			local video_length = ulx.getVideoLengthFromHTTPData( contents )
 
 			if not video_length then
-				print( "YouTube music player: Error retrieving video length for player auto-hide. Type ulx stopvid to manually hide the player bar." )
+				print( "YouTube Jukebox: Error retrieving video length for player auto-hide. Type ulx stopvid to manually hide the player bar." )
 				return
 			end
 
@@ -156,7 +159,7 @@ function ulx.stop_vid_hook()
 
 		if cvar_enabled:GetBool() == false then return end
 
-		SongPlayer:OpenURL( "http://ryno-saurus.github.com/ulx_youtubemusicplayer/host.html?quality=" .. cvar_quality:GetString() )
+		SongPlayer:OpenURL( "http://ryno-saurus.github.com/ulx_youtubemusicplayer/host.html?quality=" .. cvar_quality:GetString() .. "&volume=" .. cvar_volume:GetString() )
 
 	end )
 
@@ -168,7 +171,7 @@ local SongCount
 function ULXMusicPlayerRefresh()
 	if not ULXSongPlayerFrame or not ULXSongPlayerFrame:IsVisible() then return end
 	SongCount = 0
-	ULXSongPlayerFrame:SetTitle( "YouTube music player by RynO-SauruS *Refreshing*" )
+	ULXSongPlayerFrame:SetTitle( "YouTube Jukebox by RynO-SauruS *Refreshing*" )
 	ULXSongPlayerList:Clear()
 	RunConsoleCommand( "_ulx_songplayer", "retrievesongs" )
 end
@@ -196,17 +199,25 @@ function ULXRecieveSongsDone()
 	else
 		CountString = "(" .. SongCount .. " songs)"
 	end
-	ULXSongPlayerFrame:SetTitle( "YouTube music player by RynO-SauruS " .. CountString )
+	ULXSongPlayerFrame:SetTitle( "YouTube Jukebox by RynO-SauruS " .. CountString )
 	ULXSongPlayerList:SortByColumn( 1 )
 end
 usermessage.Hook( "ULXTransferSongsDone", ULXRecieveSongsDone )
 
+local menu_open = false
 function ULXOpenMusicPlayer()
+
+	if ULXSongPlayerFrame && menu_open then
+		ULXSongPlayerFrame:Close()
+		menu_open = false
+	end
+
+	menu_open = true
 
 	ULXSongPlayerFrame = vgui.Create( "DFrame" )
 	local frame = ULXSongPlayerFrame
 	frame:MakePopup()
-	frame:SetTitle( "YouTube music player by RynO-SauruS" )
+	frame:SetTitle( "YouTube Jukebox by RynO-SauruS" )
 	frame:ShowCloseButton( false )
 	frame:SetDeleteOnClose( true )
 	frame:SetKeyboardInputEnabled( false )
@@ -247,6 +258,7 @@ function ULXOpenMusicPlayer()
 			confirmframe:SetSize( 300, 22 + 100 )
 			confirmframe:Center()
 			confirmframe:MakePopup()
+			confirmframe:SetKeyboardInputEnabled( false )
 
 			local label = vgui.Create( "DLabel", confirmframe )
 			label:SetPos( 10, 22 + 10 )
@@ -326,6 +338,7 @@ function ULXOpenMusicPlayer()
 	closebutton:SetText( "Close" )
 	closebutton.DoClick = function()
 		closebutton:GetParent():Close()
+		menu_open = false
 	end
 
 	local playclbutton = vgui.Create( "DButton", frame )
@@ -386,6 +399,13 @@ function ULXOpenMusicPlayer()
 	addcurvidbutton:SetTooltip( "Add currently playing/last played video" )
 	addcurvidbutton.DoClick = function()
 		RunConsoleCommand( "ulx", "savecurvid" )
+	end
+
+	local debugvidbutton = vgui.Create( "DButton", frame )
+	debugvidbutton:SetText( "Debug current video" )
+	debugvidbutton:SetTooltip( "\"Debugs\" the YouTube video that's playing (client-side) by showing what's on the screen (such as YouTube errors)." )
+	debugvidbutton.DoClick = function()
+		RunConsoleCommand( "ulx", "debugvid" )
 	end
 
 	local label = vgui.Create( "DLabel", frame )
@@ -457,16 +477,19 @@ function ULXOpenMusicPlayer()
 		addcurvidbutton:SetPos( frameX - 10 - buttonX, 22 + 10 + buttonY + 10 )
 		addcurvidbutton:SetSize( buttonX, buttonY )
 
-		label:SetPos( 10, 22 + 10 + buttonY + 10 + buttonY + 5 )
-		label:SetSize( ( frameX / 2 ) - 15, 35 )
+		debugvidbutton:SetPos( 10, 22 + 10 + buttonY + 10 + buttonY + 10 )
+		debugvidbutton:SetSize( buttonX, buttonY )
 
-        local sliderX = math.min( 150, ( frameX / 2 ) - 15 )
+		local sliderX = math.min( 150, ( frameX / 2 ) - 15 )
 
-		volume:SetPos( frameX - 10 - sliderX, 22 + 10 + buttonY + 10 + buttonY + 5 )
-		volume:SetSize( sliderX, 35 )
+		label:SetPos( 10 + buttonX + 10, 22 + 10 + buttonY + 10 + buttonY + 10 )
+		label:SetSize( frameX - 10 - buttonX - 10 - 10 - sliderX - 10, 40 )
 
-		list:SetPos( 10, 22 + 10 + buttonY + 10 + buttonY + 5 + 35 + 5 )
-		list:SetSize( frameX - 20, frameY - ( 10 + buttonY + 10 + buttonY + 5 + 35 + 5 ) - 10 )
+		volume:SetPos( frameX - 10 - sliderX, 22 + 10 + buttonY + 10 + buttonY + 10 )
+		volume:SetSize( sliderX, 40 )
+
+		list:SetPos( 10, 22 + 10 + buttonY + 10 + buttonY + 10 + 40 + 10 )
+		list:SetSize( frameX - 20, frameY - ( 10 + buttonY + 10 + buttonY + 10 + 40 + 10 ) - 10 )
 
 	end
 
@@ -474,5 +497,44 @@ function ULXOpenMusicPlayer()
 	frame:Center()
 
 	ULXMusicPlayerRefresh()
+
+end
+
+local debugmenu
+local debugmenu_open = false
+function ULXSongPlayerDebug()
+
+	if debugmenu && debugmenu_open then
+		debugmenu:Close()
+		debugmenu_open = false
+	end
+
+	debugmenu_open = true
+
+	debugmenu = vgui.Create( "DFrame" )
+	local frame = debugmenu
+	frame:MakePopup()
+	frame:SetTitle( "YouTube video debug" )
+	frame:SetDeleteOnClose( true )
+	frame:SetSize( math.Clamp( 10 + PlayerSizeActual.y + 10, 0, ScrW() ), math.Clamp( 22 + 10 + PlayerSizeActual.y + 10, 0, ScrH() ) )
+	frame:Center()
+	frame:SetKeyboardInputEnabled( false )
+
+	SongPlayer:SetParent( frame )
+	SongPlayer:SetPos( 10, 22 + 10 )
+	SongPlayer:SetMouseInputEnabled( false )
+
+	local OldClose = frame.Close
+	frame.Close = function( panel )
+
+		SongPlayer:SetParent( ULXSongPlayerPanel )
+		SongPlayer:SetPos( -3 - 55 - 1, -( PlayerSizeActual.y - 4 - PlayerSize.y ) )
+		SongPlayer:SetMouseInputEnabled( false )
+
+		OldClose( panel )
+
+		debugmenu_open = false
+
+	end
 
 end
